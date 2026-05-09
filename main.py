@@ -7,6 +7,12 @@ Unified framework for time series forecasting and anomaly detection.
 import sys
 from pathlib import Path
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 # Add src to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -88,9 +94,9 @@ def fit_and_forecast(forecaster, data: pd.DataFrame, config: dict, script_dir: P
     mae_val = mean_absolute_error(test_values, pred_values)
     rmse_val = np.sqrt(mean_squared_error(test_values, pred_values))
     
-    print(f"\nForecast Evaluation:")
-    print(f"MAE: {mae_val:.4f}")
-    print(f"RMSE: {rmse_val:.4f}")
+    logger.info(f"\nForecast Evaluation:")
+    logger.info(f"MAE: {mae_val:.4f}")
+    logger.info(f"RMSE: {rmse_val:.4f}")
     
     return train_data, test_data, predictions
 
@@ -147,7 +153,7 @@ def create_forecast_visualization(train_data, test_data, predictions, config: di
     plt.tight_layout()
     output_dir = ensure_output_dir(get_output_dir(config, script_dir))
     save_plot(fig, output_dir / "merlion_forecast.png", dpi=300)
-    print(f"Plot saved to: {output_dir / 'merlion_forecast.png'}")
+    logger.info(f"Plot saved to: {output_dir / 'merlion_forecast.png'}")
 
 
 def main():
@@ -170,23 +176,23 @@ def main():
         config["data"]["value_col"]: series.values
     }).set_index(config["data"]["date_col"])
     
-    print(f"Loaded {len(data)} data points")
+    logger.info(f"Loaded {len(data)} data points")
     
     # Create and fit forecaster
     if config["model"].get("forecaster_type"):
-        print(f"\nCreating {config['model']['forecaster_type']} forecaster...")
+        logger.info(f"\nCreating {config['model']['forecaster_type']} forecaster...")
         forecaster = create_forecaster(config)
         train_data, test_data, predictions = fit_and_forecast(forecaster, data, config, script_dir)
         create_forecast_visualization(train_data, test_data, predictions, config, script_dir)
     
     # Create and fit anomaly detector if configured
     if config["model"].get("detector_type"):
-        print(f"\nCreating {config['model']['detector_type']} anomaly detector...")
+        logger.info(f"\nCreating {config['model']['detector_type']} anomaly detector...")
         detector = create_anomaly_detector(config)
         anomaly_predictions = detect_anomalies(detector, data, config)
-        print(f"Detected {anomaly_predictions.sum()} anomalies")
+        logger.info(f"Detected {anomaly_predictions.sum()} anomalies")
     
-    print("\n Merlion analysis complete")
+    logger.info("\n Merlion analysis complete")
     
     if config.get("plotting", {}).get("show_plot", True):
         plt.show()
