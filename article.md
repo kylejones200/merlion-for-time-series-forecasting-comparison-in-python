@@ -12,13 +12,13 @@ Merlion expects time series data in Pandas DataFrame format with timestamps, mak
 
 ## Why Use Merlion?
 
-- **Unified Framework:** Combines preprocessing, modeling, evaluation, and visualization in one package.
+- Unified Framework: Combines preprocessing, modeling, evaluation, and visualization in one package.
 
-- **Multiple Model Support:** Supports a variety of models, including statistical, machine learning, and deep learning approaches.
+- Multiple Model Support: Supports a variety of models, including statistical, machine learning, and deep learning approaches.
 
-- **Built-in Evaluation Metrics:** Provides standardized evaluation metrics, such as sMAPE, for consistent model comparison.
+- Built-in Evaluation Metrics: Provides standardized evaluation metrics, such as sMAPE, for consistent model comparison.
 
-- **Anomaly Detection:** Includes both supervised and unsupervised anomaly detection models.
+- Anomaly Detection: Includes both supervised and unsupervised anomaly detection models.
 
 # Example: Forecasting Energy Demand Using Merlion
 
@@ -113,27 +113,27 @@ comparison_df = pd.DataFrame(results) print(comparison_df)
 
 Model sMAPE 0 Merlion ARIMA 6.04 1 Prophet 25.01
 
-- **Merlion ARIMA** outperforms Prophet in this example.
+- Merlion ARIMA outperforms Prophet in this example.
 
-- **Prophet** has higher sMAPE, possibly due to difficulty in capturing fluctuations in the data.
+- Prophet has higher sMAPE, possibly due to difficulty in capturing fluctuations in the data.
 
 Merlion simplifies time series forecasting and anomaly detection in Python by providing:
 
-- **Unified Workflow:** Combines preprocessing, modeling, evaluation, and visualization.
+- Unified Workflow: Combines preprocessing, modeling, evaluation, and visualization.
 
-- **Multiple Models:** Supports statistical, machine learning, and deep learning approaches.
+- Multiple Models: Supports statistical, machine learning, and deep learning approaches.
 
-- **Built-In Metrics:** Standardized evaluation metrics such as sMAPE for consistent comparison.
+- Built-In Metrics: Standardized evaluation metrics such as sMAPE for consistent comparison.
 
-- **Anomaly Detection:** Both supervised and unsupervised methods are included.
+- Anomaly Detection: Both supervised and unsupervised methods are included.
 
 ## Insights from ERCOT Dataset
 
-- **Default Forecaster** and **Merlion ARIMA** deliver the best results for the ERCOT dataset.
+- Default Forecaster and Merlion ARIMA deliver the best results for the ERCOT dataset.
 
-- **Prophet** performs better with proper tuning, especially with Mean-Variance Normalization.
+- Prophet performs better with proper tuning, especially with Mean-Variance Normalization.
 
-- **Box-Cox Transform** significantly increases error, suggesting it is unsuitable for this dataset.
+- Box-Cox Transform significantly increases error, suggesting it is unsuitable for this dataset.
 
 While Merlion provides a comprehensive framework for time series analysis, it has some limitations:
 
@@ -148,4 +148,4 @@ Despite these limitations, Merlion remains a handy tool for rapid prototyping an
 - Statistical models (e.g., ARIMA)
 - Machine learning approaches
 - Deep learning models
-- **Unified Framework:** Combines preprocessing, modeling, evaluation, and visualization in one package.
+- Unified Framework: Combines preprocessing, modeling, evaluation, and visualization in one package.
