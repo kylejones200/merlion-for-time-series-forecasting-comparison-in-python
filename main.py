@@ -4,7 +4,6 @@ Merlion: Time Series Forecasting and Anomaly Detection
 Unified framework for time series forecasting and anomaly detection.
 """
 
-import sys
 from pathlib import Path
 
 import logging
@@ -93,7 +92,7 @@ def fit_and_forecast(forecaster, data: pd.DataFrame, config: dict, script_dir: P
     mae_val = mean_absolute_error(test_values, pred_values)
     rmse_val = np.sqrt(mean_squared_error(test_values, pred_values))
     
-    logger.info(f"\nForecast Evaluation:")
+    logger.info("\nForecast Evaluation:")
     logger.info(f"MAE: {mae_val:.4f}")
     logger.info(f"RMSE: {rmse_val:.4f}")
     
