@@ -7,12 +7,6 @@ Unified framework for time series forecasting and anomaly detection.
 import logging
 from pathlib import Path
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-# Add src to path
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -22,8 +16,8 @@ from merlion.models.forecast.arima import Arima, ArimaConfig
 from merlion.models.forecast.prophet import ProphetForecaster
 from merlion.utils import TimeSeries
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from src.evaluator import Evaluator
 
-# Import consolidated utilities (signalplot already applied in src/__init__.py)
 from src import (
     ensure_output_dir,
     get_output_dir,
@@ -31,15 +25,19 @@ from src import (
     load_time_series,
     save_plot,
 )
-from src.evaluator import Evaluator
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+# Add src to path
+
+
+# Import consolidated utilities (signalplot already applied in src/__init__.py)
 
 
 def create_forecaster(config: dict):
     """Create Merlion forecaster based on config."""
     forecaster_map = {
-        "Prophet": lambda: ProphetForecaster(
-            **config["model"].get("forecaster_params", {})
-        ),
+        "Prophet": lambda: ProphetForecaster(**config["model"].get("forecaster_params", {})),
         "ARIMA": lambda: Arima(
             ArimaConfig(
                 order=tuple(config["model"].get("arima_order", [2, 1, 2])),
@@ -47,26 +45,16 @@ def create_forecaster(config: dict):
             )
         ),
     }
-
-    return forecaster_map.get(
-        config["model"]["forecaster_type"], forecaster_map["Prophet"]
-    )()
+    return forecaster_map.get(config["model"]["forecaster_type"], forecaster_map["Prophet"])()
 
 
 def create_anomaly_detector(config: dict):
     """Create Merlion anomaly detector based on config."""
     detector_map = {
-        "IsolationForest": lambda: IsolationForest(
-            **config["model"].get("detector_params", {})
-        ),
-        "AutoEncoder": lambda: AutoEncoder(
-            **config["model"].get("detector_params", {})
-        ),
+        "IsolationForest": lambda: IsolationForest(**config["model"].get("detector_params", {})),
+        "AutoEncoder": lambda: AutoEncoder(**config["model"].get("detector_params", {})),
     }
-
-    return detector_map.get(
-        config["model"]["detector_type"], detector_map["IsolationForest"]
-    )()
+    return detector_map.get(config["model"]["detector_type"], detector_map["IsolationForest"])()
 
 
 def fit_and_forecast(forecaster, data: pd.DataFrame, config: dict, script_dir: Path):
@@ -74,26 +62,19 @@ def fit_and_forecast(forecaster, data: pd.DataFrame, config: dict, script_dir: P
     evaluator = Evaluator(test_size=config["data"]["test_size"])
     series = data[config["data"]["value_col"]]
     train, test = evaluator.split(series)
-
     train_df = pd.DataFrame({config["data"]["value_col"]: train})
     test_df = pd.DataFrame({config["data"]["value_col"]: test})
-
     train_data = TimeSeries.from_pd(train_df)
     test_data = TimeSeries.from_pd(test_df)
-
     forecaster.train(train_data)
     predictions, _ = forecaster.forecast(time_stamps=test_data.time_stamps)
-
     test_values = test_data.to_pd().values.flatten()
     pred_values = predictions.to_pd().values.flatten()
-
     mae_val = mean_absolute_error(test_values, pred_values)
     rmse_val = np.sqrt(mean_squared_error(test_values, pred_values))
-
     logger.info("\nForecast Evaluation:")
     logger.info(f"MAE: {mae_val:.4f}")
     logger.info(f"RMSE: {rmse_val:.4f}")
-
     return train_data, test_data, predictions
 
 
@@ -102,7 +83,6 @@ def detect_anomalies(detector, data: pd.DataFrame, config: dict):
     ts_data = TimeSeries.from_pd(data)
     detector.train(ts_data)
     predictions = detector.get_anomaly_label(ts_data)
-
     return predictions
 
 
@@ -110,14 +90,10 @@ def create_forecast_visualization(
     train_data, test_data, predictions, config: dict, script_dir: Path
 ):
     """Generate forecast visualization."""
-    fig, ax = plt.subplots(
-        figsize=tuple(config.get("plotting", {}).get("figure_size", [12, 6]))
-    )
-
+    fig, ax = plt.subplots(figsize=tuple(config.get("plotting", {}).get("figure_size", [12, 6])))
     train_df = train_data.to_pd()
     test_df = test_data.to_pd()
     pred_df = predictions.to_pd()
-
     ax.plot(
         train_df.index,
         train_df.values.flatten(),
@@ -126,7 +102,6 @@ def create_forecast_visualization(
         alpha=config.get("plotting", {}).get("alpha", 0.8),
         label="Train",
     )
-
     ax.plot(
         test_df.index,
         test_df.values.flatten(),
@@ -135,7 +110,6 @@ def create_forecast_visualization(
         alpha=config.get("plotting", {}).get("alpha", 0.8),
         label="Actual (Test)",
     )
-
     ax.plot(
         pred_df.index,
         pred_df.values.flatten(),
@@ -143,33 +117,29 @@ def create_forecast_visualization(
         linewidth=config.get("plotting", {}).get("linewidth", 1.5),
         label="Forecast",
     )
-
     ax.set_xlabel("Date")
     ax.set_ylabel("Value")
     ax.set_title(f"Merlion {config['model']['forecaster_type']} Forecast")
     ax.legend(loc="best")
     ax.grid(True, alpha=0.3)
-
     plt.tight_layout()
-    output_dir = ensure_output_dir(get_output_dir(config, script_dir))
-    save_plot(fig, output_dir / "merlion_forecast.png", dpi=300)
+    output_dir = ensure_output_dir(config)
+    fig.savefig(output_dir / "merlion_forecast.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
     logger.info(f"Plot saved to: {output_dir / 'merlion_forecast.png'}")
 
 
 def main():
     """Main execution function."""
     script_dir = Path(__file__).parent
-
     # Load configuration using consolidated loader
     config = load_config()
-
     # Load data using consolidated loader
     series = load_time_series(
         config["data"]["input_file"],
-        date_column=config["data"].get("date_col", "date"),
-        value_column=config["data"].get("value_col", "value"),
+        date_col=config["data"].get("date_col", "date"),
+        value_col=config["data"].get("value_col", "value"),
     )
-
     # Convert to DataFrame format expected by Merlion
     data = pd.DataFrame(
         {
@@ -177,31 +147,22 @@ def main():
             config["data"]["value_col"]: series.values,
         }
     ).set_index(config["data"]["date_col"])
-
     logger.info(f"Loaded {len(data)} data points")
-
     # Create and fit forecaster
     if config["model"].get("forecaster_type"):
         logger.info(f"\nCreating {config['model']['forecaster_type']} forecaster...")
         forecaster = create_forecaster(config)
-        train_data, test_data, predictions = fit_and_forecast(
-            forecaster, data, config, script_dir
-        )
-        create_forecast_visualization(
-            train_data, test_data, predictions, config, script_dir
-        )
+        train_data, test_data, predictions = fit_and_forecast(forecaster, data, config, script_dir)
+        create_forecast_visualization(train_data, test_data, predictions, config, script_dir)
 
     # Create and fit anomaly detector if configured
     if config["model"].get("detector_type"):
-        logger.info(
-            f"\nCreating {config['model']['detector_type']} anomaly detector..."
-        )
+        logger.info(f"\nCreating {config['model']['detector_type']} anomaly detector...")
         detector = create_anomaly_detector(config)
         anomaly_predictions = detect_anomalies(detector, data, config)
         logger.info(f"Detected {anomaly_predictions.sum()} anomalies")
 
     logger.info("\n Merlion analysis complete")
-
     if config.get("plotting", {}).get("show_plot", True):
         plt.show()
     else:
